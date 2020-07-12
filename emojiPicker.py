@@ -64,7 +64,7 @@ async def on_raw_reaction_add(payload):
         print(payload.emoji.name)
         # print(messageID[payload.message_id])
 
-    if payload.emoji.name == "🧅": # TODO: fix flag emojis
+    if payload.emoji.name == "🧅":
         if(debug):
             print("onion setup")
 
@@ -77,7 +77,7 @@ async def on_raw_reaction_add(payload):
         if(debug):
             print(msg.content)
 
-        emojiList = re.findall(r'([^a-zA-Z\s_&(),*:/\-\uFE0F])', msg.content) # regex to remove all except unicode emojis
+        emojiList = re.findall(r'[^a-zA-Z\s_&(),*:/\-\uFE0F]+', msg.content) # regex to remove all except unicode emojis
         if(debug):
             print(emojiList)
         for e in emojiList:
@@ -91,7 +91,7 @@ async def on_raw_reaction_add(payload):
             print('message found')
         if payload.emoji.name in roleRef[payload.message_id].keys(): # check if emoji represents a role
             if(debug):
-                # print('emoji found ' + payload.emoji.name)
+                print('emoji found ' + payload.emoji.name)
             role = discord.utils.get(guild.roles, name=roleRef[payload.message_id][payload.emoji.name]) # get role Object
             if(debug):
                 print(role)
@@ -116,7 +116,7 @@ async def on_raw_reaction_remove(payload):
     guild = discord.utils.find(lambda g: g.id == payload.guild_id, client.guilds)  # get guild Object
     if(debug):
         print("\nReaction Remove by " + discord.utils.find(lambda m: m.id == payload.user_id, guild.members).display_name)
-        print(messageID[payload.message_id])
+        # print(messageID[payload.message_id])
 
     role = None # default
     if payload.message_id in roleRef.keys(): # check if reaction removed was on a role message
@@ -124,7 +124,7 @@ async def on_raw_reaction_remove(payload):
             print('message found')
         if payload.emoji.name in roleRef[payload.message_id].keys(): # check if emoji represents a role
             if(debug):
-                # print('emoji found ' + payload.emoji.name)
+                print('emoji found ' + payload.emoji.name)
             role = discord.utils.get(guild.roles, name=roleRef[payload.message_id][payload.emoji.name]) # get role Object
             if(debug):
                 print(role)
