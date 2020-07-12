@@ -1,0 +1,6 @@
+#Bot Auth Key
+key.txt
+
+#Library
+/venv/
+/.idea/
