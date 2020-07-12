@@ -4,3 +4,5 @@ key.txt
 #Library
 /venv/
 /.idea/
+
+.gitignore
