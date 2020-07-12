@@ -77,11 +77,19 @@ async def on_raw_reaction_add(payload):
         if(debug):
             print(msg.content)
 
-        emojiList = re.findall(r'[^a-zA-Z\s_&(),*:/\-\uFE0F]+', msg.content) # regex to remove all except unicode emojis
+        emojiList = re.findall(r'[^a-zA-Z\s_&(),*:/\-]+', msg.content) # regex to remove all except unicode emojis and joiners
         if(debug):
             print(emojiList)
-        for e in emojiList:
-            await msg.add_reaction(e) # put all the emojis on message
+        for str in emojiList:
+            miniList = re.findall(r'.\u200d.️|.\u200d.|.',  str) # regex to split into multi-part emojis with joiners or single emojis
+            # the first regex will split unspaced emojis into a single string (needed to keep flag emojis and multi-part emojis together)
+            # '.\u200d.' and '.u\2ood️' is the representation of multi-part emojis
+            # '.' filters all other single character emojis
+            if(debug):
+                print(miniList)
+            for e in miniList:
+                await msg.add_reaction(e) # put all the emojis on message
+                pass
 
         return # skip role selection section
 
