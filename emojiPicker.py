@@ -2,7 +2,6 @@ import discord
 from discord.ext import commands
 import re
 
-client = discord.Client()
 bot = commands.Bot(command_prefix='$')
 
 allowDM = True # global var to allow role DMs
@@ -13,7 +12,7 @@ debug = True
 async def hello(ctx):
     await ctx.send(f"Hello, {ctx.author.display_name}") # debug message
 
-# bot.add_command(hello)
+bot.add_command(hello)
 
 
 @commands.command()
@@ -28,14 +27,14 @@ async def roledm(ctx):
         allowDM = not allowDM # whether or not bot can DM
         await ctx.channel.send("Role DMs set to " + ("on" if allowDM else "off"))
 
-# bot.add_command(roledm)
+bot.add_command(roledm)
 
 
 @commands.command()
 async def test(ctx, arg):
     await ctx.send(arg)
 
-# bot.add_command(test)
+bot.add_command(test)
 
 
 emojidict = {
@@ -65,10 +64,10 @@ messageID = {
 }
 
 
-@client.event
+@bot.event
 async def on_raw_reaction_add(payload):
-    guild = discord.utils.find(lambda g : g.id == payload.guild_id, client.guilds) # get guild Object
-    if (client.user.id == payload.user_id):
+    guild = discord.utils.find(lambda g : g.id == payload.guild_id, bot.guilds) # get guild Object
+    if (bot.user.id == payload.user_id):
         return # don't react to self
 
     if(debug):
@@ -80,7 +79,7 @@ async def on_raw_reaction_add(payload):
         if(debug):
             print("onion setup")
 
-        guild = discord.utils.find(lambda g: g.id == payload.guild_id, client.guilds)  # get guild Object
+        guild = discord.utils.find(lambda g: g.id == payload.guild_id, bot.guilds)  # get guild Object
         member = discord.utils.find(lambda m: m.id == payload.user_id, guild.members)  # get user Object
         channel = discord.utils.find(lambda c: c.id == payload.channel_id, guild.channels) # get channel Object
         msg = await channel.fetch_message(payload.message_id) # get message Object
@@ -122,9 +121,9 @@ async def on_raw_reaction_add(payload):
                 print("already has role")
 
 
-@client.event
+@bot.event
 async def on_raw_reaction_remove(payload):
-    guild = discord.utils.find(lambda g: g.id == payload.guild_id, client.guilds)  # get guild Object
+    guild = discord.utils.find(lambda g: g.id == payload.guild_id, bot.guilds)  # get guild Object
     if(debug):
         print(f"\nReaction Remove by {discord.utils.find(lambda m: m.id == payload.user_id, guild.members).display_name}")
         print(payload.emoji.name)
@@ -158,5 +157,5 @@ async def on_raw_reaction_remove(payload):
 
 keyFile = open('key.txt', 'r')
 key = keyFile.readline()
-client.run(key)
+bot.run(key)
 keyFile.close()
