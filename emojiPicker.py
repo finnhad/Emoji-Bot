@@ -12,7 +12,7 @@ async def on_message(message):
         return # don't react to self
 
     if message.content.startswith("$hello"):
-        await message.channel.send("Hello!") # debug message
+        await message.channel.send(f"Hello, {message.author.display_name}") # debug message
 
     if message.content.startswith("$roleDM"):
         if (debug):
@@ -60,7 +60,7 @@ async def on_raw_reaction_add(payload):
         return # don't react to self
 
     if(debug):
-        print("\nReaction Add by " + payload.member.display_name)
+        print(f"\nReaction Add by {payload.member.display_name}")
         print(payload.emoji.name)
         # print(messageID[payload.message_id])
 
@@ -77,20 +77,11 @@ async def on_raw_reaction_add(payload):
         if(debug):
             print(msg.content)
 
-        emojiList = re.findall(r'[^a-zA-Z\s_&(),*:/\-]+', msg.content) # regex to remove all except unicode emojis and joiners
+        emojiList = re.findall(r'[^a-zA-Z\s_&(),*:/\-]+', msg.content) # regex to remove all except unicode emojis
         if(debug):
             print(emojiList)
-        for str in emojiList:
-            miniList = re.findall(r'.\u200d.️|.\u200d.|.',  str) # regex to split into multi-part emojis with joiners or single emojis
-            # the first regex will split unspaced emojis into a single string (needed to keep flag emojis and multi-part emojis together)
-            # '.\u200d.' and '.u\2ood️' is the representation of multi-part emojis
-            # '.' filters all other single character emojis
-            if(debug):
-                print(miniList)
-            for e in miniList:
-                await msg.add_reaction(e) # put all the emojis on message
-                pass
-
+        for e in emojiList:
+            await msg.add_reaction(e) # does not work for non space-separated emojis or multi-part emojis (ex: gender versions)
         return # skip role selection section
 
     role = None # default
@@ -99,7 +90,7 @@ async def on_raw_reaction_add(payload):
             print('message found')
         if payload.emoji.name in roleRef[payload.message_id].keys(): # check if emoji represents a role
             if(debug):
-                print('emoji found ' + payload.emoji.name)
+                print(f'emoji found {payload.emoji.name}')
             role = discord.utils.get(guild.roles, name=roleRef[payload.message_id][payload.emoji.name]) # get role Object
             if(debug):
                 print(role)
@@ -109,12 +100,12 @@ async def on_raw_reaction_add(payload):
         if member is not None and not(member in role.members): # check if user exists and doesn't already have role
             await member.add_roles(role) # add role
             if(allowDM):
-                await member.send("Added " + role.name + " role") # send confirmation DM to user
+                await member.send(f"Added {role.name} role") # send confirmation DM to user
             if(debug):
                 print("added role")
         else:
             if(allowDM):
-                await member.send("User already has " + role.name + " role. Cannot add") # send error DM to user
+                await member.send(f"User already has {role.name} role. Cannot add") # send error DM to user
             if(debug):
                 print("already has role")
 
@@ -123,7 +114,8 @@ async def on_raw_reaction_add(payload):
 async def on_raw_reaction_remove(payload):
     guild = discord.utils.find(lambda g: g.id == payload.guild_id, client.guilds)  # get guild Object
     if(debug):
-        print("\nReaction Remove by " + discord.utils.find(lambda m: m.id == payload.user_id, guild.members).display_name)
+        print(f"\nReaction Remove by {discord.utils.find(lambda m: m.id == payload.user_id, guild.members).display_name}")
+        print(payload.emoji.name)
         # print(messageID[payload.message_id])
 
     role = None # default
@@ -132,7 +124,7 @@ async def on_raw_reaction_remove(payload):
             print('message found')
         if payload.emoji.name in roleRef[payload.message_id].keys(): # check if emoji represents a role
             if(debug):
-                print('emoji found ' + payload.emoji.name)
+                print(f"emoji found {payload.emoji.name}")
             role = discord.utils.get(guild.roles, name=roleRef[payload.message_id][payload.emoji.name]) # get role Object
             if(debug):
                 print(role)
@@ -142,12 +134,12 @@ async def on_raw_reaction_remove(payload):
         if member is not None and member in role.members: # check if user exists and already has role
             await member.remove_roles(role) # remove role
             if(allowDM):
-                await member.send("Removed " + role.name + " role") # send confirmation DM to user
+                await member.send(f"Removed {role.name} role") # send confirmation DM to user
             if(debug):
                 print("removed role")
         else:
             if(allowDM):
-                await member.send("User does not have " + role.name + " role. Cannot remove") # send error DM to user
+                await member.send(f"User does not have {role.name} role. Cannot remove") # send error DM to user
             if(debug):
                 print("doesn't have role")
 
