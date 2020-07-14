@@ -1,29 +1,41 @@
 import discord
+from discord.ext import commands
 import re
 
 client = discord.Client()
+bot = commands.Bot(command_prefix='$')
 
 allowDM = True # global var to allow role DMs
 debug = True
 
-@client.event # text commands
-async def on_message(message):
-    if message.author == client.user:
-        return # don't react to self
 
-    if message.content.startswith("$hello"):
-        await message.channel.send(f"Hello, {message.author.display_name}") # debug message
+@commands.command()
+async def hello(ctx):
+    await ctx.send(f"Hello, {ctx.author.display_name}") # debug message
 
-    if message.content.startswith("$roleDM"):
-        if (debug):
-            print("roledm")
+# bot.add_command(hello)
 
-        guild = message.guild  # get guild Object
-        role = discord.utils.get(guild.roles, name="Admin")
-        if message.author in role.members: # only admins can toggle
-            global allowDM
-            allowDM = not allowDM # whether or not bot can DM
-            await message.channel.send("Role DMs set to " + ("on" if allowDM else "off"))
+
+@commands.command()
+async def roledm(ctx):
+    if (debug):
+        print("roledm")
+
+    guild = ctx.guild  # get guild Object
+    role = discord.utils.get(guild.roles, name="Admin")
+    if ctx.author in role.members: # only admins can toggle
+        global allowDM
+        allowDM = not allowDM # whether or not bot can DM
+        await ctx.channel.send("Role DMs set to " + ("on" if allowDM else "off"))
+
+# bot.add_command(roledm)
+
+
+@commands.command()
+async def test(ctx, arg):
+    await ctx.send(arg)
+
+# bot.add_command(test)
 
 
 emojidict = {
