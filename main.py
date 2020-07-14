@@ -6,11 +6,10 @@ debug = True
 
 # TODO: run emojiPicker as Cog
     # https://discordpy.readthedocs.io/en/latest/ext/commands/cogs.html
+
 # TODO: set up DB
     # figure out scraping
-# TODO: convert to decorators
 
-# TODO: find emojis for missing roles
 # TODO: make sure no missing roles
 
 

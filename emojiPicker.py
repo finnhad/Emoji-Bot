@@ -30,13 +30,6 @@ async def roledm(ctx):
 bot.add_command(roledm)
 
 
-@commands.command()
-async def test(ctx, arg):
-    await ctx.send(arg)
-
-bot.add_command(test)
-
-
 emojidict = {
     "0": "0️⃣",
     "1": "1️⃣",
@@ -88,7 +81,7 @@ async def on_raw_reaction_add(payload):
         if(debug):
             print(msg.content)
 
-        emojiList = re.findall(r'[^a-zA-Z\s_&(),*:/\-]+', msg.content) # regex to remove all except unicode emojis
+        emojiList = re.findall(r'[^a-zA-Z0-9\s_&(),*:/\-]+', msg.content) # regex to remove all except unicode emojis
         if(debug):
             print(emojiList)
         for e in emojiList:
