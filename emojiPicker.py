@@ -1,13 +1,18 @@
 import discord
 from discord.ext import commands
 import re
-import time
 
 bot = commands.Bot(command_prefix='$')
 
 allowDM = True # global var to allow role DMs
 debug = True
 
+@commands.command()
+async def roletest(ctx):
+    server = ctx.guild
+    await server.create_role(name="test role")
+
+bot.add_command(roletest)
 
 @commands.command()
 async def hello(ctx):
@@ -65,6 +70,7 @@ async def emojis(ctx):
                 await message.add_reaction(e)  # does not work for non space-separated emojis
 
 bot.add_command(emojis)
+
 
 @bot.event
 async def on_raw_reaction_add(payload):
