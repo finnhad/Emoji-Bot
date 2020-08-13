@@ -6,11 +6,11 @@ debug = True
 
 # TODO: run emojiPicker as Cog
     # https://discordpy.readthedocs.io/en/latest/ext/commands/cogs.html
+    #TODO: run $setup command on bot startup
 
-# TODO: set up DB
-    # figure out scraping
+# TODO: turn print debugging into logging
 
-# TODO: make sure no missing roles
+# TODO: Create all server roles
 
 
 keyFile = open('key.txt', 'r')

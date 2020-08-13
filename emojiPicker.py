@@ -1,6 +1,7 @@
 import discord
 from discord.ext import commands
 import re
+import time
 
 bot = commands.Bot(command_prefix='$')
 
@@ -30,32 +31,40 @@ async def roledm(ctx):
 bot.add_command(roledm)
 
 
-emojidict = {
-    "0": "0️⃣",
-    "1": "1️⃣",
-    "2": "2️⃣",
-    "3": "3️⃣",
-    "4": "4️⃣",
-    "5": "5️⃣",
-    "6": "6️⃣",
-    "7": "7️⃣"
-}
+roleDict = {} # to be filled on $setup and kept during runtime
+@commands.has_permissions(administrator=True)
+@commands.command()
+async def roles(ctx):
+    if(debug):
+        print("setup command")
 
-roleRef = {
-    730909127307559034: {
-        "1️⃣": "Engineering",
-        "2️⃣": "Communications",
-        "3️⃣": "Natural Sciences"
-    }
+    channel = ctx.channel  # get channel Object
+    await channel.last_message.delete() # remove command
+    async for message in channel.history(oldest_first = True): # all messages in role channel, chronological order just cus
+        roleDict[message.id] = {} # dictionary entry
+        roles = message.content.split('\n') # split message by lines ([emoji] role name)
+        for line in roles:
+            split = line.split(' ', 1) # split line by spaces, max 2 results (emoji and role)
+            if (re.search(r'^.*\w.*$', split[0])) is None: # avoid heading message ("__School of X__", "*major category*)
+                roleDict[message.id][split[0]] = split[1].strip() # add dictionary entry for message entry (emoji : role name)
+    print(roleDict)
 
-}
+bot.add_command(roles)
 
-messageID = {
-    730909127307559034: "School",
-    731045317839028234: "Class",
-    731643953199448156: "Student"
-}
 
+@commands.has_permissions(administrator=True)
+@commands.command()
+async def emojis(ctx):
+    channel = ctx.channel  # get channel Object
+    await channel.last_message.delete()  # remove command
+    async with channel.typing():  # let user know command is running
+        async for message in channel.history(oldest_first=True):  # all messages in role channel, chronological order just cus
+            emojiList = re.findall(r'[^a-zA-Z0-9\s_&()\'!,*:/\-]+', message.content)  # regex to remove all except unicode emojis - works for *most* emojis
+            await message.clear_reactions() # remove all old reactions
+            for e in emojiList:
+                await message.add_reaction(e)  # does not work for non space-separated emojis
+
+bot.add_command(emojis)
 
 @bot.event
 async def on_raw_reaction_add(payload):
@@ -68,34 +77,14 @@ async def on_raw_reaction_add(payload):
         print(payload.emoji.name)
         # print(messageID[payload.message_id])
 
-    if payload.emoji.name == "🧅":
-        if(debug):
-            print("onion setup")
-
-        guild = discord.utils.find(lambda g: g.id == payload.guild_id, bot.guilds)  # get guild Object
-        member = discord.utils.find(lambda m: m.id == payload.user_id, guild.members)  # get user Object
-        channel = discord.utils.find(lambda c: c.id == payload.channel_id, guild.channels) # get channel Object
-        msg = await channel.fetch_message(payload.message_id) # get message Object
-
-        await msg.remove_reaction(payload.emoji, member)  # remove onion setup emoji
-        if(debug):
-            print(msg.content)
-
-        emojiList = re.findall(r'[^a-zA-Z0-9\s_&(),*:/\-]+', msg.content) # regex to remove all except unicode emojis
-        if(debug):
-            print(emojiList)
-        for e in emojiList:
-            await msg.add_reaction(e) # does not work for non space-separated emojis or multi-part emojis (ex: gender versions)
-        return # skip role selection section
-
     role = None # default
-    if payload.message_id in roleRef.keys(): # check if reaction added was on a role message
+    if payload.message_id in roleDict.keys(): # check if reaction added was on a role message
         if(debug):
             print('message found')
-        if payload.emoji.name in roleRef[payload.message_id].keys(): # check if emoji represents a role
+        if payload.emoji.name in roleDict[payload.message_id].keys(): # check if emoji represents a role
             if(debug):
                 print(f'emoji found {payload.emoji.name}')
-            role = discord.utils.get(guild.roles, name=roleRef[payload.message_id][payload.emoji.name]) # get role Object
+            role = discord.utils.get(guild.roles, name=roleDict[payload.message_id][payload.emoji.name]) # get role Object
             if(debug):
                 print(role)
 
@@ -123,13 +112,15 @@ async def on_raw_reaction_remove(payload):
         # print(messageID[payload.message_id])
 
     role = None # default
-    if payload.message_id in roleRef.keys(): # check if reaction removed was on a role message
+    if payload.message_id in roleDict.keys(): # check if reaction removed was on a role message
         if(debug):
             print('message found')
-        if payload.emoji.name in roleRef[payload.message_id].keys(): # check if emoji represents a role
+            print(roleDict[payload.message_id])
+            print(payload.emoji.name)
+        if payload.emoji.name in roleDict[payload.message_id].keys(): # check if emoji represents a role
             if(debug):
                 print(f"emoji found {payload.emoji.name}")
-            role = discord.utils.get(guild.roles, name=roleRef[payload.message_id][payload.emoji.name]) # get role Object
+            role = discord.utils.get(guild.roles, name=roleDict[payload.message_id][payload.emoji.name]) # get role Object
             if(debug):
                 print(role)
 
