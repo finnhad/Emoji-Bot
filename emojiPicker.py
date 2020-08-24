@@ -5,13 +5,11 @@ import re
 bot = commands.Bot(command_prefix='!')
 
 allowDM = True # global var to allow role DMs
-debug = True
-
 
 
 @bot.event
 async def on_ready():
-    roleChannel = bot.get_channel(int(731243961980813432)) # get role channel
+    roleChannel = bot.get_channel(int(744294091516411974)) # get role channel
     await roleSetup(roleChannel) # called on bot boot
 
 
@@ -27,10 +25,6 @@ bot.add_command(hello)
 @commands.command()
 async def roledm(ctx):
     """Toggles confirmation DM"""
-    if (debug):
-        print("roledm")
-
-    guild = ctx.guild  # get guild Object
     global allowDM
     allowDM = not allowDM # whether or not bot can DM
     await ctx.channel.send("Role DMs set to " + ("on" if allowDM else "off"))
@@ -42,8 +36,6 @@ bot.add_command(roledm)
 @commands.command()
 async def roles(ctx):
     """(Re)Populates role data structure. Automatically called on startup"""
-    if(debug):
-        print("setup command")
 
     channel = ctx.channel  # get channel Object
     await channel.last_message.delete() # remove command
@@ -55,6 +47,7 @@ bot.add_command(roles)
 roleDict = {} # to be filled on $setup and kept during runtime
 async def roleSetup(channel):
     """Creates role data structure"""
+
     async for message in channel.history(oldest_first = True): # all messages in role channel, chronological order just cus
         roleDict[message.id] = {} # dictionary entry
         roles = message.content.split('\n') # split message by lines ([emoji] role name)
@@ -62,13 +55,13 @@ async def roleSetup(channel):
             split = line.strip().split(' ', 1) # split line by spaces, max 2 results (emoji and role)
             if (re.search(r'^.*\w.*$', split[0])) is None: # avoid heading message ("__School of X__", "*major category*)
                 roleDict[message.id][split[0]] = split[1].strip() # add dictionary entry for message entry (emoji : role name)
-    print(roleDict)
 
 
 @commands.has_permissions(administrator=True)
 @commands.command()
 async def emojis(ctx):
     """Checks all messages in the channel and reacts with emojis in the message"""
+
     channel = ctx.channel  # get channel Object
     await channel.last_message.delete()  # remove command
     async with channel.typing():  # let user know command is running
@@ -84,24 +77,14 @@ bot.add_command(emojis)
 @bot.event
 async def on_raw_reaction_add(payload):
     guild = discord.utils.find(lambda g : g.id == payload.guild_id, bot.guilds) # get guild Object
+
     if (bot.user.id == payload.user_id):
         return # don't react to self
 
-    if(debug):
-        print(f"\nReaction Add by {payload.member.display_name}")
-        print(payload.emoji.name)
-        # print(messageID[payload.message_id])
-
     role = None # default
     if payload.message_id in roleDict.keys(): # check if reaction added was on a role message
-        if(debug):
-            print('message found')
         if payload.emoji.name in roleDict[payload.message_id].keys(): # check if emoji represents a role
-            if(debug):
-                print(f'emoji found {payload.emoji.name}')
             role = discord.utils.get(guild.roles, name=roleDict[payload.message_id][payload.emoji.name]) # get role Object
-            if(debug):
-                print(role)
 
     if role is not None:
         member = discord.utils.find(lambda m : m.id == payload.user_id, guild.members) # get user Object
@@ -109,35 +92,19 @@ async def on_raw_reaction_add(payload):
             await member.add_roles(role) # add role
             if(allowDM):
                 await member.send(f"Added {role.name} role") # send confirmation DM to user
-            if(debug):
-                print("added role")
         else:
             if(allowDM):
                 await member.send(f"User already has {role.name} role. Cannot add") # send error DM to user
-            if(debug):
-                print("already has role")
 
 
 @bot.event
 async def on_raw_reaction_remove(payload):
     guild = discord.utils.find(lambda g: g.id == payload.guild_id, bot.guilds)  # get guild Object
-    if(debug):
-        print(f"\nReaction Remove by {discord.utils.find(lambda m: m.id == payload.user_id, guild.members).display_name}")
-        print(payload.emoji.name)
-        # print(messageID[payload.message_id])
 
     role = None # default
     if payload.message_id in roleDict.keys(): # check if reaction removed was on a role message
-        if(debug):
-            print('message found')
-            print(roleDict[payload.message_id])
-            print(payload.emoji.name)
         if payload.emoji.name in roleDict[payload.message_id].keys(): # check if emoji represents a role
-            if(debug):
-                print(f"emoji found {payload.emoji.name}")
             role = discord.utils.get(guild.roles, name=roleDict[payload.message_id][payload.emoji.name]) # get role Object
-            if(debug):
-                print(role)
 
     if role is not None:
         member = discord.utils.find(lambda m: m.id == payload.user_id, guild.members) # get user Object
@@ -145,13 +112,9 @@ async def on_raw_reaction_remove(payload):
             await member.remove_roles(role) # remove role
             if(allowDM):
                 await member.send(f"Removed {role.name} role") # send confirmation DM to user
-            if(debug):
-                print("removed role")
         else:
             if(allowDM):
                 await member.send(f"User does not have {role.name} role. Cannot remove") # send error DM to user
-            if(debug):
-                print("doesn't have role")
 
 
 keyFile = open('key.txt', 'r')
