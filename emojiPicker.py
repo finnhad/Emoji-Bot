@@ -2,64 +2,73 @@ import discord
 from discord.ext import commands
 import re
 
-bot = commands.Bot(command_prefix='$')
+bot = commands.Bot(command_prefix='!')
 
 allowDM = True # global var to allow role DMs
 debug = True
 
-@commands.command()
-async def roletest(ctx):
-    server = ctx.guild
-    await server.create_role(name="test role")
 
-bot.add_command(roletest)
+
+@bot.event
+async def on_ready():
+    roleChannel = bot.get_channel(int(731243961980813432)) # get role channel
+    await roleSetup(roleChannel) # called on bot boot
+
 
 @commands.command()
 async def hello(ctx):
+    """Hello world"""
     await ctx.send(f"Hello, {ctx.author.display_name}") # debug message
 
 bot.add_command(hello)
 
 
+@commands.has_permissions(administrator=True)
 @commands.command()
 async def roledm(ctx):
+    """Toggles confirmation DM"""
     if (debug):
         print("roledm")
 
     guild = ctx.guild  # get guild Object
-    role = discord.utils.get(guild.roles, name="Admin")
-    if ctx.author in role.members: # only admins can toggle
-        global allowDM
-        allowDM = not allowDM # whether or not bot can DM
-        await ctx.channel.send("Role DMs set to " + ("on" if allowDM else "off"))
+    global allowDM
+    allowDM = not allowDM # whether or not bot can DM
+    await ctx.channel.send("Role DMs set to " + ("on" if allowDM else "off"))
 
 bot.add_command(roledm)
 
 
-roleDict = {} # to be filled on $setup and kept during runtime
 @commands.has_permissions(administrator=True)
 @commands.command()
 async def roles(ctx):
+    """(Re)Populates role data structure. Automatically called on startup"""
     if(debug):
         print("setup command")
 
     channel = ctx.channel  # get channel Object
     await channel.last_message.delete() # remove command
+    await roleSetup(channel)
+
+bot.add_command(roles)
+
+
+roleDict = {} # to be filled on $setup and kept during runtime
+async def roleSetup(channel):
+    """Creates role data structure"""
     async for message in channel.history(oldest_first = True): # all messages in role channel, chronological order just cus
         roleDict[message.id] = {} # dictionary entry
         roles = message.content.split('\n') # split message by lines ([emoji] role name)
         for line in roles:
-            split = line.split(' ', 1) # split line by spaces, max 2 results (emoji and role)
+            split = line.strip().split(' ', 1) # split line by spaces, max 2 results (emoji and role)
             if (re.search(r'^.*\w.*$', split[0])) is None: # avoid heading message ("__School of X__", "*major category*)
                 roleDict[message.id][split[0]] = split[1].strip() # add dictionary entry for message entry (emoji : role name)
     print(roleDict)
-
-bot.add_command(roles)
 
 
 @commands.has_permissions(administrator=True)
 @commands.command()
 async def emojis(ctx):
+    """Checks all messages in the channel and reacts with emojis in the message"""
     channel = ctx.channel  # get channel Object
     await channel.last_message.delete()  # remove command
     async with channel.typing():  # let user know command is running
