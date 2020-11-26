@@ -8,15 +8,21 @@ allowDM = True # global var to allow role DMs
 
 
 @bot.event
-async def on_ready():
+async def on_shard_ready():
+    print("hi")
+    print(roleChannel)
+
     roleChannel = bot.get_channel(int(744294091516411974)) # get role channel
+
     await roleSetup(roleChannel) # called on bot boot
+
 
 
 @commands.command()
 async def hello(ctx):
     """Hello world"""
     await ctx.send(f"Hello, {ctx.author.display_name}") # debug message
+
 
 bot.add_command(hello)
 
@@ -87,14 +93,15 @@ async def on_raw_reaction_add(payload):
             role = discord.utils.get(guild.roles, name=roleDict[payload.message_id][payload.emoji.name]) # get role Object
 
     if role is not None:
-        member = discord.utils.find(lambda m : m.id == payload.user_id, guild.members) # get user Object
-        if member is not None and not(member in role.members): # check if user exists and doesn't already have role
-            await member.add_roles(role) # add role
-            if(allowDM):
-                await member.send(f"Added {role.name} role") # send confirmation DM to user
-        else:
-            if(allowDM):
-                await member.send(f"User already has {role.name} role. Cannot add") # send error DM to user
+        member = await guild.fetch_member(payload.user_id)  # get user Object
+        if member is not None:
+            if not(member in role.members): # check if user exists and doesn't already have role
+                await member.add_roles(role) # add role
+                if(allowDM):
+                    await member.send(f"Added {role.name} role") # send confirmation DM to user
+            # else:
+            #     if(allowDM):
+            #         await member.send(f"User already has {role.name} role. Cannot add.") # send error DM to user
 
 
 @bot.event
@@ -107,14 +114,15 @@ async def on_raw_reaction_remove(payload):
             role = discord.utils.get(guild.roles, name=roleDict[payload.message_id][payload.emoji.name]) # get role Object
 
     if role is not None:
-        member = discord.utils.find(lambda m: m.id == payload.user_id, guild.members) # get user Object
-        if member is not None and member in role.members: # check if user exists and already has role
-            await member.remove_roles(role) # remove role
-            if(allowDM):
-                await member.send(f"Removed {role.name} role") # send confirmation DM to user
-        else:
-            if(allowDM):
-                await member.send(f"User does not have {role.name} role. Cannot remove") # send error DM to user
+        member = await guild.fetch_member(payload.user_id) # get user Object
+        if member is not None:
+            if not(member in role.members): # check if user exists and already has role
+                await member.remove_roles(role) # remove role
+                if(allowDM):
+                    await member.send(f"Removed {role.name} role") # send confirmation DM to user
+            # else:
+            #     if(allowDM):
+            #         await member.send(f"User does not have {role.name} role. Cannot remove.") # send error DM to user
 
 
 keyFile = open('key.txt', 'r')
