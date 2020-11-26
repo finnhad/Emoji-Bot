@@ -31,6 +31,7 @@ async def github(ctx):
     """"Send Github info"""
     await ctx.send("https://github.com/OneStrangeOnion/Emoji-Bot") #github link
 
+bot.add_command(github)
 
 @commands.has_permissions(administrator=True)
 @commands.command()
