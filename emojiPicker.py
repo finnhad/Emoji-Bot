@@ -8,7 +8,7 @@ allowDM = True # global var to allow role DMs
 
 
 @bot.event
-async def on_shard_ready():
+async def on_ready():
     print("hi")
     print(roleChannel)
 
@@ -25,6 +25,11 @@ async def hello(ctx):
 
 
 bot.add_command(hello)
+
+@commands.command()
+async def github(ctx):
+    """"Send Github info"""
+    await ctx.send("https://github.com/OneStrangeOnion/Emoji-Bot") #github link
 
 
 @commands.has_permissions(administrator=True)
